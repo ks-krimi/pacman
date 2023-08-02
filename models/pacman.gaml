@@ -1,72 +1,49 @@
-/**
-* Name: pacman
-* This is a model to simulate a Pacman game, my favorite game when i was a kid 
-* Author: FANOMEZANTSOA Herifiandry Marc Nico
-* Email: ny.kalash@gmail.com
-* Tags: game, pacman, childwood game
-*/
+model Pacman
 
-model pacman
-
-/**
- * if facet torus: true
- * the agent going out of env will appear on the other side
-*/
 global torus: true {
-	int balloon_create <- 0;
-	int balloon_dead <- 0;
-	
-	// geometry shape <- square(100#m);
-
-	reflex name: create_balloon when: flip(0.1) {
-		if (balloon_create < 10){
-			create Balloon number: 1;
-			balloon_create <- balloon_create + 1;
-		}
-	}
-	
-	reflex name: end_simulation when: balloon_dead >= 10 {
-		ask host {
-			do die;
-		}
+	init {
+		create Pacman number: 1;
+		create Ghost number: 3;
 	}
 }
 
-species Balloon {
-	float balloon_size;
-	rgb balloon_color;
-	
+species name: Ghost skills: [moving] {
+	Pacman pacman;
 	init {
-		balloon_size  <- 0.1;
-		balloon_color <- rgb(rnd(255), rnd(255), rnd(255));
+		speed <- 0.5;
+		heading <- 50.0;
 	}
-	
-	aspect balloon_aspect {
-		draw circle(balloon_size#m) color: balloon_color;
-		draw string("size: " + round(balloon_size)) color: #grey;
+	aspect name: Angry {
+		draw circle(1) color: #red;
 	}
-	
-	action destroy {
-		balloon_dead <- balloon_dead + 1;
-		write "Nombre de balloon detruit: " + balloon_dead ;
-		do die;
+	reflex name: find_pacman when: pacman=nil {
+		ask Pacman {
+			myself.pacman <- self;
+		}
 	}
-	
-	reflex grow {
-		balloon_size <- balloon_size + 0.1#m;
+	reflex name: follow_pacman when: pacman!=nil {
+		do goto target: pacman;
 	}
+}
 
-	reflex getold when: balloon_size >= 10#m {
-		do destroy;
+species name: Pacman skills: [moving] {
+	init {
+		speed <- 1.0;
+		heading <- 90.0;
+	}
+	aspect name: Yellow {
+		draw circle(1.5) color: #yellow;
+	}
+	reflex name: move {
+		do wander amplitude: 90.0;
 	}
 }
 
 experiment Run type: gui {
-
-    output {
-        display "Game Evironement" {
-           species Balloon aspect: balloon_aspect;
-        }
-    }
-
+	output {
+		display "Game World" {
+			species Pacman aspect: Yellow;
+			species Ghost aspect: Angry;
+		}
+	}
 }
