@@ -6,7 +6,6 @@
 * Tags: game, pacman, childwood game
 */
 
-
 model pacman
 
 /**
@@ -14,41 +13,60 @@ model pacman
  * the agent going out of env will appear on the other side
 */
 global torus: true {
+	int balloon_create <- 0;
+	int balloon_dead <- 0;
 	
-	geometry shape <- rectangle(250#cm, 250#cm);
+	// geometry shape <- square(100#m);
+
+	reflex name: create_balloon when: flip(0.1) {
+		if (balloon_create < 10){
+			create Balloon number: 1;
+			balloon_create <- balloon_create + 1;
+		}
+	}
 	
-	init {
-		create Pacman number:1;
-		create Ghost number: 3;
+	reflex name: end_simulation when: balloon_dead >= 10 {
+		ask host {
+			do die;
+		}
 	}
 }
 
-species name:Ghost {
+species Balloon {
+	float balloon_size;
+	rgb balloon_color;
+	
 	init {
-		name <- "Red Ghost";
-		shape <- circle(5#cm);
+		balloon_size  <- 0.1;
+		balloon_color <- rgb(rnd(255), rnd(255), rnd(255));
 	}
 	
-	aspect name:red {
-		draw shape color: #red;
+	aspect balloon_aspect {
+		draw circle(balloon_size#m) color: balloon_color;
+		draw string("size: " + round(balloon_size)) color: #grey;
 	}
-}
+	
+	action destroy {
+		balloon_dead <- balloon_dead + 1;
+		write "Nombre de balloon detruit: " + balloon_dead ;
+		do die;
+	}
+	
+	reflex grow {
+		balloon_size <- balloon_size + 0.1#m;
+	}
 
-species Pacman {
-	init {
-		name <- "Pacman";
-		shape <- circle(8#cm);
-	}
-	aspect yellow {
-		draw shape color: #yellow;
+	reflex getold when: balloon_size >= 10#m {
+		do destroy;
 	}
 }
 
 experiment Run type: gui {
-    output{
+
+    output {
         display "Game Evironement" {
-            species Ghost aspect:red;
-            species Pacman aspect:yellow;
+           species Balloon aspect: balloon_aspect;
         }
     }
+
 }
