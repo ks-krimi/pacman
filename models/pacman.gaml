@@ -9,51 +9,46 @@
 
 model pacman
 
-global {
+/**
+ * if facet torus: true
+ * the agent going out of env will appear on the other side
+*/
+global torus: true {
 	
-	string my_name <- "Nico";
-	int my_age <- 25;
-	bool is_male <- true;
-	float my_size <- 1.80#m;
-	string my_default <- nil;
+	geometry shape <- rectangle(250#cm, 250#cm);
 	
-	list<int> favoriteNumb <- [1,8,4,9] where(each <= 8);
-	string fruits <- "avocat" among: ["mango","orange", "avocat"];
-	
-	reflex write_in_console {
-		write my_name;
-		write my_age;
-		write is_male;
-		write my_size;
-		write my_default;
+	init {
+		create Pacman number:1;
+		create Ghost number: 3;
 	}
-	
-	reflex print {
-		loop i over: favoriteNumb {
-			write i;
-		}
-	}
-	
-	reflex plot {
-		loop i from: 0 to: 10 step: 2 {
-			write i;
-		}
-	}
-	
 }
 
-species ghost {
-	
-}
-
-species pacman {
-	
-}
-
-experiment run type:gui {
-	
-	output {
-		
+species name:Ghost {
+	init {
+		name <- "Red Ghost";
+		shape <- circle(5#cm);
 	}
 	
+	aspect name:red {
+		draw shape color: #red;
+	}
+}
+
+species Pacman {
+	init {
+		name <- "Pacman";
+		shape <- circle(8#cm);
+	}
+	aspect yellow {
+		draw shape color: #yellow;
+	}
+}
+
+experiment Run type: gui {
+    output{
+        display "Game Evironement" {
+            species Ghost aspect:red;
+            species Pacman aspect:yellow;
+        }
+    }
 }
