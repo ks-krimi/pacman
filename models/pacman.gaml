@@ -1,6 +1,9 @@
 model Pacman
 
 global torus: true {
+	
+	float step <- 2.25#s;
+	
 	file data <- csv_file('../includes/world.csv',',');
 	
 	list<environement> roads;
@@ -39,9 +42,7 @@ global torus: true {
 		}
 
 		loop while: length(Pacman) < number_max_of_pacman {
-			create Pacman number: 1 with: (location: location) {
-				my_cell <- environement(location);
-			}
+			create Pacman number: 1 with: (pacman_cell: environement(location));
 		}
 	}
 	
@@ -56,9 +57,9 @@ global torus: true {
 	}
 	
 	reflex halting when: empty (Pacman) {
-        ask host {
-            do die;
-        }
+        // ask host {
+            do pause;
+        // }
     }
 }
 
@@ -83,8 +84,8 @@ species name: Ghost skills: [moving] {
 	}
 	
 	action follow_pacman {
-		if  (pacman!=nil) {
-		do goto target: pacman on: roads;
+		if (pacman!=nil) {
+			do goto target: pacman on: roads;
 		}
 	}
 	
@@ -111,7 +112,7 @@ species name: Pacman skills: [moving] {
 
 	Food food;
 	Ghost ghost;
-	environement my_cell;
+	environement pacman_cell;
 
 	init {
 		speed <- 0.7;
@@ -129,7 +130,7 @@ species name: Pacman skills: [moving] {
 	}
 
 	reflex name: move  when: food!=nil {
-		my_cell <- get_location();
+		pacman_cell <- get_location();
 		do goto target: food on: roads;
 	}
 
@@ -143,7 +144,7 @@ species name: Pacman skills: [moving] {
 	}
 
 	reflex name: died {
-		list<Ghost> ghosts <- Ghost inside (my_cell);
+		list<Ghost> ghosts <- Ghost inside (pacman_cell);
 		if(!empty(ghosts)) {
 			ask self {
 				do die;
@@ -152,7 +153,7 @@ species name: Pacman skills: [moving] {
 	}
 	
 	action eat {
-		list<Food> foods <- Food inside (my_cell);
+		list<Food> foods <- Food inside (pacman_cell);
 		if(!empty(foods)) {
 			ask one_of (foods) {
 				do die;
@@ -174,7 +175,7 @@ species Food {
 experiment Run type: gui {
 	output {
 		display "Game World" {
-			grid environement; 
+			grid environement border: #black; 
 			species Food aspect: default;
 			species Pacman aspect: default;
 			species Ghost aspect: default;
