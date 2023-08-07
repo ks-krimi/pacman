@@ -12,6 +12,8 @@ global torus: true {
 	image_file orange_ghost_icon <-  image_file('../includes/orangeGhost.png');
 	
 	list<environement> roads;
+	list<environement> decors;
+	
 	list<string> ghost_names <- ["Red", "Blue", "Green", "Orange"];
 	list<rgb> ghost_colors <- [#red, #blue, #green, #orange];
 	list<image_file> ghost_icons <- [
@@ -37,10 +39,34 @@ global torus: true {
 		matrix data_grid <- matrix(data);
 		ask environement {
 			grid_value <- float(data_grid[grid_x, grid_y]);
-			color <- grid_value = 1 ? #white : #gray;
+			color <- grid_value = 1 ? #white : rgb(164,180,76);
 		}
 		
 		roads <- environement where (each.grid_value = 1);
+		decors <- environement where (each.grid_value = 0);
+		
+		loop road over: roads {
+			create Object number: 1 with: (
+				icon: image_file('../includes/road.png'),
+				location: road.location
+			);
+		}
+		
+		loop decor over: decors {
+			
+			list<image_file> objects <- 1 among [
+				image_file('../includes/tree.png'),
+				image_file('../includes/stone.png'),
+				image_file('../includes/stone2.png'),
+				image_file('../includes/bush.png'),
+				image_file('../includes/bush2.png')
+			];
+			
+			create Object number: 1 with: (
+				icon: objects[0],
+				location: decor.location
+			);
+		}
 		
 		do create_food;	
 		
@@ -204,10 +230,18 @@ species Food {
 	}
 }
 
+species Object {
+	image_file icon;
+	aspect name: default {
+		draw icon size: 1.0 * 5;
+	}
+}
+
 experiment Run type: gui {
 	output {
 		display "Game World" {
-			grid environement border: #black;
+			grid environement;
+			species Object aspect: default;
 			species Food aspect: icon;
 			species Pacman aspect: icon;
 			species Ghost aspect: icon;
