@@ -6,20 +6,32 @@ global torus: true {
 	
 	file data <- csv_file('../includes/world.csv',',');
 	
+	image_file red_ghost_icon <-  image_file('../includes/redGhost.png');
+	image_file blue_ghost_icon <-  image_file('../includes/blueGhost.png');
+	image_file green_ghost_icon <-  image_file('../includes/greenGhost.png');
+	image_file orange_ghost_icon <-  image_file('../includes/orangeGhost.png');
+	
 	list<environement> roads;
-	list<string> ghost_names <- ["Red", "Cyan", "Orange"];
-	list<rgb> ghost_colors <- [#red, #cyan, #orange];
+	list<string> ghost_names <- ["Red", "Blue", "Green", "Orange"];
+	list<rgb> ghost_colors <- [#red, #blue, #green, #orange];
+	list<image_file> ghost_icons <- [
+		red_ghost_icon,
+		blue_ghost_icon,
+		green_ghost_icon,
+		orange_ghost_icon
+	];
 	
 	int number_max_of_pacman <- 1;
 	int number_max_of_ghost <- 3;
 	
 	list<point> ghost_init_locations <- [
-		environement[12, 15].location,
-		environement[14, 15].location,
-		environement[16, 15].location
+		environement[11, 8].location,
+		environement[10, 10].location,
+		environement[11, 10].location,
+		environement[12, 10].location
 	];
 	
-	point pacman_init_location <- environement[14, 18].location;
+	point pacman_init_location <- environement[11, 16].location;
 	
 	init {
 		matrix data_grid <- matrix(data);
@@ -30,7 +42,7 @@ global torus: true {
 		
 		roads <- environement where (each.grid_value = 1);
 		
-		do create_food;
+		do create_food;	
 		
 		loop position over: ghost_init_locations {
 			int index <- ghost_init_locations index_of position;
@@ -38,6 +50,7 @@ global torus: true {
 				location <- position;
 				name <- ghost_names[index];
 				color <- ghost_colors[index];
+				ghost_icon <- ghost_icons[index];
 			}
 		}
 
@@ -63,11 +76,12 @@ global torus: true {
     }
 }
 
-grid environement width: 30 height: 32 {}
+grid environement width: 23 height: 22 {}
 
 species name: Ghost skills: [moving] {
 	Pacman pacman;
 	rgb color;
+	image_file ghost_icon;
 	
 	init {
 		speed <- 0.7;
@@ -75,6 +89,10 @@ species name: Ghost skills: [moving] {
 	
 	aspect name: default {
 		draw circle(1.5) color: color;
+	}
+	
+	aspect name: icon {
+		draw ghost_icon size: 1.0 * 4.5 ;
 	}
 	
 	reflex name: find_pacman when: pacman=nil {
@@ -96,12 +114,18 @@ species name: Ghost skills: [moving] {
 	}
 	
 	reflex when: after(starting_date + 1#mn) {
-		if (self.name = "Cyan") {
+		if (self.name = "Blue") {
 			do follow_pacman;
 		}
 	}
 	
 	reflex when: after(starting_date + 2#mn) {
+		if (self.name = "Green") {
+			do follow_pacman;
+		}
+	}
+	
+	reflex when: after(starting_date + 3#mn) {
 		if (self.name = "Orange") {
 			do follow_pacman;
 		}
@@ -109,10 +133,10 @@ species name: Ghost skills: [moving] {
 }
 
 species name: Pacman skills: [moving] {
-
 	Food food;
 	Ghost ghost;
 	environement pacman_cell;
+	image_file pacman_icon <- image_file('../includes/PacMan.png');
 
 	init {
 		speed <- 0.7;
@@ -121,6 +145,10 @@ species name: Pacman skills: [moving] {
 
 	aspect name: default {
 		draw circle(1.5) color: #yellow;
+	}
+	
+	aspect name: icon {
+		draw pacman_icon size: 1.0 * 4.5 ;
 	}
 
 	reflex name: find_food when: food=nil {
@@ -167,18 +195,22 @@ species name: Pacman skills: [moving] {
 }
 
 species Food {
+	image_file food_icon <- image_file('../includes/cherry.png');
 	aspect default {
 		draw circle(1) color: #green;
+	}
+	aspect icon {
+		draw food_icon size: 1.0 * 3.3 ;
 	}
 }
 
 experiment Run type: gui {
 	output {
 		display "Game World" {
-			grid environement border: #black; 
-			species Food aspect: default;
-			species Pacman aspect: default;
-			species Ghost aspect: default;
+			grid environement border: #black;
+			species Food aspect: icon;
+			species Pacman aspect: icon;
+			species Ghost aspect: icon;
 		}
 	}
 }
