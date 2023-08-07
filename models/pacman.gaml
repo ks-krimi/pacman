@@ -3,6 +3,8 @@ model Pacman
 global torus: true {
 	
 	float step <- 2.25#s;
+	bool is_pacman_dead <- false;
+	bool is_food_overlap;
 	
 	file data <- csv_file('../includes/world.csv',',');
 	
@@ -183,24 +185,30 @@ species name: Pacman skills: [moving] {
 		}
 	}
 
-	reflex name: move  when: food!=nil {
+	reflex name: move when: food!=nil {
 		pacman_cell <- get_location();
+		if food overlaps (pacman_cell) {
+			is_food_overlap <- true;
+		}else{
+			is_food_overlap <- false;
+		}
 		do goto target: food on: roads;
 	}
 
 	reflex name: avoid_ghost {
 		do move bounds: ghost;
 	}
-
-	reflex name: eat {
+	
+	reflex when: !is_pacman_dead {
 		do eat;
-		set food <- nil;
+		do died;
 	}
-
-	reflex name: died {
+		
+	action died {
 		list<Ghost> ghosts <- Ghost inside (pacman_cell);
 		if(!empty(ghosts)) {
 			ask self {
+				is_pacman_dead <- true;
 				do die;
 			}
 		}
@@ -210,6 +218,7 @@ species name: Pacman skills: [moving] {
 		list<Food> foods <- Food inside (pacman_cell);
 		if(!empty(foods)) {
 			ask one_of (foods) {
+				set myself.food <- nil;
 				do die;
 			}
 		}
@@ -222,6 +231,7 @@ species name: Pacman skills: [moving] {
 
 species Food {
 	image_file food_icon <- image_file('../includes/cherry.png');
+	
 	aspect default {
 		draw circle(1) color: #green;
 	}
@@ -238,6 +248,26 @@ species Object {
 }
 
 experiment Run type: gui {
+	
+	bool is_game_start <- true;
+	
+	init {
+		start_sound source: '../includes/sounds/game_start.wav' mode: overwrite repeat: false;
+	}
+	
+	reflex when: is_pacman_dead and is_game_start {
+		start_sound source: '../includes/sounds/death_1.wav' mode: overwrite repeat: false;
+		is_game_start <- false;
+	}
+	
+	reflex when: is_game_start and after(starting_date + 15#s) {
+		start_sound source: '../includes/sounds/siren_1.wav' mode: ignore repeat: true;
+	}
+	
+	reflex when: is_food_overlap {
+		start_sound source: '../includes/sounds/eat_ghost.wav' mode: overwrite repeat: false;
+	}
+	
 	output {
 		display "Game World" {
 			grid environement;
