@@ -115,10 +115,6 @@ species name: Ghost skills: [moving] {
 		speed <- 0.7;
 	}
 	
-	aspect name: default {
-		draw circle(1.5) color: color;
-	}
-	
 	aspect name: icon {
 		draw ghost_icon size: 1.0 * 4.5 ;
 	}
@@ -170,10 +166,6 @@ species name: Pacman skills: [moving] {
 		speed <- 0.7;
 		location <- pacman_init_location;
 	}
-
-	aspect name: default {
-		draw circle(1.5) color: #yellow;
-	}
 	
 	aspect name: icon {
 		draw pacman_icon size: 1.0 * 4.5 ;
@@ -198,27 +190,23 @@ species name: Pacman skills: [moving] {
 	reflex name: avoid_ghost {
 		do move bounds: ghost;
 	}
+
+	reflex when: food overlaps pacman_cell {
+		ask food {
+			set myself.food <- nil;
+			do die;
+		}
+	}	
 	
 	reflex when: !is_pacman_dead {
-		do eat;
 		do died;
 	}
-		
+	
 	action died {
 		list<Ghost> ghosts <- Ghost inside (pacman_cell);
 		if(!empty(ghosts)) {
 			ask self {
 				is_pacman_dead <- true;
-				do die;
-			}
-		}
-	}
-	
-	action eat {
-		list<Food> foods <- Food inside (pacman_cell);
-		if(!empty(foods)) {
-			ask one_of (foods) {
-				set myself.food <- nil;
 				do die;
 			}
 		}
@@ -232,9 +220,6 @@ species name: Pacman skills: [moving] {
 species Food {
 	image_file food_icon <- image_file('../includes/cherry.png');
 	
-	aspect default {
-		draw circle(1) color: #green;
-	}
 	aspect icon {
 		draw food_icon size: 1.0 * 3.3 ;
 	}
