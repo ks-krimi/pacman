@@ -234,6 +234,8 @@ species Object {
 
 experiment Run type: gui {
 	
+	float minimum_cycle_duration <- 0.140#s min: 0.100#s max: 0.140#s ;
+	
 	bool is_game_start <- true;
 	
 	init {
@@ -253,6 +255,22 @@ experiment Run type: gui {
 		start_sound source: '../includes/sounds/eat_ghost.wav' mode: overwrite repeat: false;
 	}
 	
+	action name: Top {
+		write 'Deplacer en haut';
+	}
+	
+	action name: Bottom {
+		write 'Deplacer en bas';
+	}
+	
+	action name: Left {
+		write 'Deplacer à gauche';
+	}
+	
+	action name: Right {
+		write 'Deplacer à droite';
+	}
+	
 	output {
 		display "Game World" {
 			grid environement;
@@ -260,6 +278,11 @@ experiment Run type: gui {
 			species Food aspect: icon;
 			species Pacman aspect: icon;
 			species Ghost aspect: icon;
+			
+			event 'e' action: Top;
+			event 'd' action: Bottom;
+			event 's' action: Left;
+			event 'f' action: Right;
 		}
 	}
 }
