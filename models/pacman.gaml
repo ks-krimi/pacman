@@ -6,6 +6,8 @@ global torus: true {
 	bool is_pacman_dead <- false;
 	bool is_food_overlap;
 	
+	string move_state <- 'IDLE' among: ['IDLE', 'UP', 'DOWN', 'LEFT', 'RIGHT'];
+	
 	file data <- csv_file('../includes/world.csv',',');
 	
 	image_file red_ghost_icon <-  image_file('../includes/redGhost.png');
@@ -70,7 +72,7 @@ global torus: true {
 			);
 		}
 		
-		do create_food;	
+		do create_food;
 		
 		loop position over: ghost_init_locations {
 			int index <- ghost_init_locations index_of position;
@@ -104,7 +106,7 @@ global torus: true {
     }
 }
 
-grid environement width: 23 height: 22 {}
+grid environement width: 23 height: 22 neighbors: 4 {}
 
 species name: Ghost skills: [moving] {
 	Pacman pacman;
@@ -161,9 +163,10 @@ species name: Pacman skills: [moving] {
 	Ghost ghost;
 	environement pacman_cell;
 	image_file pacman_icon <- image_file('../includes/PacMan.png');
+	float vitesse <- 0.7;
 
 	init {
-		speed <- 0.7;
+		speed <- vitesse;
 		location <- pacman_init_location;
 	}
 	
@@ -176,15 +179,31 @@ species name: Pacman skills: [moving] {
 			myself.food <- self;
 		}
 	}
-
+	
 	reflex name: move when: food!=nil {
 		pacman_cell <- get_location();
 		if food overlaps (pacman_cell) {
 			is_food_overlap <- true;
-		}else{
+		}else {
 			is_food_overlap <- false;
 		}
-		do goto target: food on: roads;
+	 	switch move_state {
+		 	match 'UP' {
+		 		do GoUp;
+		 	}
+		 	match 'DOWN' {
+		 		do GoDown;
+		 	}
+		 	match 'LEFT' {
+		 		do GoLeft;
+		 	}
+		 	match 'RIGHT' {
+		 		do GoRight;
+		 	}
+		 	default {
+		 		speed <- 0.0;
+		 	}
+		 }
 	}
 
 	reflex name: avoid_ghost {
@@ -214,6 +233,46 @@ species name: Pacman skills: [moving] {
 
 	environement get_location {
 		return environement({location.x, location.y});
+	}
+	
+	float get_grid_value_at (int grid_x, int grid_y) {
+		return environement[grid_x, grid_y].grid_value;
+	}
+	
+	action GoUp {
+		if (get_grid_value_at(pacman_cell.grid_x, pacman_cell.grid_y - 1) = 1.0) {
+			speed <- vitesse;
+			do move heading: 270.0;
+		}else {
+			speed <- 0.0;
+		}
+	}
+	
+	action GoDown {
+		if (get_grid_value_at(pacman_cell.grid_x, pacman_cell.grid_y + 1) = 1.0) {
+			speed <- vitesse;
+			do move heading: 90.0;
+		}else {
+			speed <- 0.0;
+		}
+	}
+	
+	action GoLeft {
+		if (get_grid_value_at(pacman_cell.grid_x - 1, pacman_cell.grid_y) = 1.0) {
+			speed <- vitesse;
+			do move heading: 180.0;
+		}else {
+			speed <- 0.0;
+		}
+	}
+	
+	action GoRight {
+		if (get_grid_value_at(pacman_cell.grid_x + 1, pacman_cell.grid_y) = 1.0) {
+			speed <- vitesse;
+			do move heading: 0.0;
+		}else {
+			speed <- 0.0;
+		}
 	}
 }
 
@@ -255,34 +314,35 @@ experiment Run type: gui {
 		start_sound source: '../includes/sounds/eat_ghost.wav' mode: overwrite repeat: false;
 	}
 	
-	action name: Top {
-		write 'Deplacer en haut';
+	action name: Up {
+		set move_state <- 'UP';
 	}
 	
-	action name: Bottom {
-		write 'Deplacer en bas';
+	action name: Down {
+		set move_state <- 'DOWN';
 	}
 	
 	action name: Left {
-		write 'Deplacer à gauche';
+		set move_state <- 'LEFT';
 	}
 	
 	action name: Right {
-		write 'Deplacer à droite';
+		set move_state <- 'RIGHT';
 	}
 	
 	output {
 		display "Game World" {
 			grid environement;
+			
 			species Object aspect: default;
 			species Food aspect: icon;
 			species Pacman aspect: icon;
 			species Ghost aspect: icon;
 			
-			event 'e' action: Top;
-			event 'd' action: Bottom;
-			event 's' action: Left;
-			event 'f' action: Right;
+			event '8' action: Up;
+			event '5' action: Down;
+			event '4' action: Left;
+			event '6' action: Right;
 		}
 	}
 }
