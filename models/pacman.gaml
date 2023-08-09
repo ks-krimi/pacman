@@ -1,3 +1,11 @@
+/**
+* Name: pacman
+* This is a model to simulate Pacman game, one of my favorite game when i was a kid
+* Author: FANOMEZANTSOA Herifiandry Marc Nico
+* Email: ny.kalash@gmail.com
+* Tags: pacman, game, 2D game, retro gaming
+*/
+
 model Pacman
 
 global torus: true {
