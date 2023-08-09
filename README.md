@@ -2,10 +2,9 @@
 
 This is a model to simulate Pacman game in GAMA platform using the GAML language.
 
-<div style="display: flex; gap: 30px;">
+<div style="display: flex;">
 
 [<img src="gama-logo.png" width="50" height="50" alt="Gama logo"/>](https://gama-platform.org/)
-
 [<img src="pacman-logo.png" width="150" alt="Gama logo"/>](https://pacman.com/en/)
 
 </div>
